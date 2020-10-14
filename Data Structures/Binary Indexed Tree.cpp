@@ -40,7 +40,7 @@ class BIT
 		int rangeSum(int l, int r)
 		{
 			'''Compute the range sum in the given range'''
-			return  sum(r) - sum(l) + fenwick[l];
+			return  sum(r) - sum(l-1);
 		}
 };
 
