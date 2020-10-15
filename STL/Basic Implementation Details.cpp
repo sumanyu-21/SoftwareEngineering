@@ -4,22 +4,22 @@
 # include <algorithm>
 using namespace std;
 
-'''
+/*
                 |     set             | unordered_set
 ---------------------------------------------------------
 Ordering        | increasing  order   | no ordering
                 | (by default)        |
 
 Implementation  | Self balancing BST  | Hash Table
-                | like Red-Black Tree |  
+                | like Red-Black Tree |
 
-search time     | log(n)              | O(1) -> Average 
+search time     | log(n)              | O(1) -> Average
                 |                     | O(n) -> Worst Case
 
 Insertion time  | log(n) + Rebalance  | Same as search
-                      
+
 Deletion time   | log(n) + Rebalance  | Same as search
-'''
+*/
 
 //set--> Elemets are sorted in ascending order on the basis of keys(no values are present)
 //map--> Elements are sorted in ascending order on the basis of keys(vales are also present).
@@ -37,13 +37,13 @@ void vectorDemo()
 	vector<int> A = {11,2,3,14};
 
 	// Sorting in ascending order.
-	sort(A.begin(), A.end()); 
+	sort(A.begin(), A.end());
 	// Sorting in Specific way
 	sort(A.begin(), A.end(), comparator)
 
 
 	// Once sorted, we can perform binary search.Gives first occurence.
-	bool present = binary_search(A.begin(), A.end(), 3); 
+	bool present = binary_search(A.begin(), A.end(), 3);
 
 
 	// Adding new elements to vector;
@@ -109,6 +109,6 @@ void setDemo()
 
 int main()
 {
-	
+
 
 }

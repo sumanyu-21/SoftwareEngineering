@@ -2,7 +2,7 @@
 # include <stdio.h>
 # include <map>
 # include <algorithm>
-# include<vector>
+# include <vector>
 # include <bits/stdc++.h>
 
 using namespace std;
