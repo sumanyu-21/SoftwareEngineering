@@ -17,103 +17,45 @@ struct hash_pair {
     }
 };
 
-vector<vector<ll> >dp(1<<14, vector<ll>(14+1,-1));
+int dp[(1<<14)][15][15];
 unordered_map<pair<int, int>, int, hash_pair>bad_edges;
 unordered_map<int,int>bad_vertices;
 unordered_map<int,int>bad_vertices_reverse;
 int n_bad_vertices;
 
-ll modInverse(ll a, ll m)
-{
-    ll m0 = m;
-    ll y = 0, x = 1;
-
-    if (m == 1)
-      return 0;
-
-    while (a > 1)
-    {
-        // q is quotient
-        ll q = a / m;
-        ll t = m;
-
-        // m is remainder now, process same as
-        // Euclid's algo
-        m = a % m, a = t;
-        t = y;
-
-        // Update y and x
-        y = x - q * y;
-        x = t;
+long long poww(long long a, long long b){
+    long long ans = 1;
+    while (b){
+        if (b % 2) ans = (ans * a) % MOD;
+        a = (a * a) % MOD;
+        b /= 2;
     }
-
-    // Make x positive
-    if (x < 0)
-       x += m0;
-
-    return x;
+    return ans;
 }
 
-ll factorial(ll n)
-{
-    ll res=1;
-    while(n)
-    {
-        res = (res*(n))%MOD;
-        n-=1;
-    }
-    return res;
+long long fa[111111];
+long long rev[111111];
+
+long long cnk(int n, int k){
+    return (fa[n] * rev[k] % MOD * rev[n - k]) % MOD;
 }
 
-// Initially none of the bad vertices are placed in ordering.
-ll valid_orderings(int mask, int idx)
-{
-	// all the bits are set--> a valid ordering
-	if(mask==(1<<n_bad_vertices)-1)
-		return 1;
-
-	// If all bad vertices have been explored and no ordering has been found.
-	/*if(idx>bad_vertices.size())
-		return 0;*/
-
-	if(dp[mask][idx]==-1)
-	{
-		ll result = 0;
-		int last_placed = bad_vertices_reverse[idx];
-		// Check bad vertices which have not been put in the ordering.
-		for(int i=0;i<n_bad_vertices;i++)
-		{
-			// If the bad_vertex i already placed in the ordering.
-			if(mask & (1<<i))
-				continue;
-
-
-			// If the bad_vertex is not placed in the ordering
-			// Check if there exists an edge between this vertex and last placed.
-			// If no edge exist, this vertex can be placed in the ordering
-			// bad_vertex_idx = i+1 in the map.
-			bool condition1 = bad_edges.find({bad_vertices_reverse[i+1], last_placed}) == bad_edges.end();
-			bool condition2 = bad_edges.find({last_placed, bad_vertices_reverse[i+1]}) == bad_edges.end();
-			bool condition3 = last_placed==-1;
-			if(condition1 && condition2 || condition3)
-				result = (result + valid_orderings(mask | (1<<i), i+1))%MOD;
-		}
-		dp[mask][idx] = result;
-	}
-	return dp[mask][idx];
-}
 
 int main()
 {
 	int t;
 	cin>>t;
+	fa[0] = rev[0] = 1;
+    for (int i = 1; i <= 100000; i++){
+        fa[i] = (fa[i - 1] * i) % MOD;
+        rev[i] = poww(fa[i], MOD - 2);
+    }
 	while(t--)
 	{
 		bad_vertices.clear();
 		bad_vertices_reverse.clear();
 		bad_edges.clear();
-		for(int i=0;i<dp.size();i++)
-			fill(dp[i].begin(),dp[i].end(),-1);
+		memset(dp,0, sizeof(dp));
 
 		int N,M;
 		cin>>N>>M;
@@ -127,22 +69,80 @@ int main()
 			bad_vertices[y] = 1;
 		}
 
-        int i=1;
+        int k=0;
 		// Giving each bad vertex an index. Start from 1 for easier implementation.
 		for(auto itr=bad_vertices.begin();itr!=bad_vertices.end();itr++)
 		{
-			bad_vertices[itr->first] = i;//itr - bad_vertices.begin()+1;
-			bad_vertices_reverse[i] = itr->first;
-			i++;
+			bad_vertices[itr->first] = k;//itr - bad_vertices.begin()+1;
+			bad_vertices_reverse[k] = itr->first;
+			k++;
 		}
-		n_bad_vertices = bad_vertices.size();
-		ll ans = (factorial(N) * modInverse(factorial(bad_vertices.size()), MOD))%MOD;
-		bad_vertices_reverse[0] = -1;
-		bad_vertices[-1] = 0;
-		ll x = valid_orderings(0,0);
-		ans = (ans*x)%MOD;
-		cout<<ans<<endl;
+		//for(auto itr = bad_vertices_reverse.begin();itr!=bad_vertices_reverse.end();itr++)
+            //cout<<itr->first<<" "<<itr->second<<endl;
 
+		n_bad_vertices = bad_vertices.size();
+		//cout<<n_bad_vertices<<endl;
+
+		ll ans = 0;
+		for (int i=0;i<n_bad_vertices;i++)
+			dp[1<<i][i][0] = 1;
+
+		for (int mask = 1;mask < (1<<n_bad_vertices); mask++)
+		{
+			for (int last_placed = 0; last_placed<bad_vertices.size(); last_placed++)
+			{
+				for(int taken = 0; taken < bad_vertices.size(); taken++)
+				{
+					if(dp[mask][last_placed][taken]>0)
+					{
+					    //cout<<mask<<" "<<last_placed<<" "<<taken<<" "<<dp[mask][last_placed][taken]<<endl;
+						// Check if jth bad vertex has been placed in order.
+						for(int j=0;j<bad_vertices.size();j++)
+						{
+							// If placed, do nothing
+							if(mask & (1<<j))
+								continue;
+
+							// If not placed, check if there exists an edge between this vertex and last placed vertex.
+							bool condition1 = bad_edges.find({bad_vertices_reverse[last_placed], bad_vertices_reverse[j]})==bad_edges.end();
+							//bool condition2 = bad_edges.find({bad_vertices_reverse[j], bad_vertices_reverse[last_placed]})==bad_edges.end();
+							//cout<<mask<<" "<<last_placed<<" "<<taken<<" "<<dp[mask][last_placed][taken]<<endl;
+							//cout<<condition1<<endl;
+							int updated_mask = (mask | (1<<j));
+							if(condition1)
+								dp[updated_mask][j][taken] = (dp[updated_mask][j][taken] + dp[mask][last_placed][taken])%MOD;
+
+							else
+								dp[updated_mask][j][taken+1] = (dp[updated_mask][j][taken+1] + dp[mask][last_placed][taken])%MOD;
+
+                            //dp[mask ^ (1<<j)][j][taken + bad_edges[make_pair(bad_vertices_reverse[last_placed], bad_vertices[j])]] = (dp[mask][last_placed][taken] + dp[mask ^ (1<<j)][j][taken + bad_edges[make_pair(bad_vertices_reverse[last_placed], bad_vertices[j])]])%MOD;
+						}
+
+						// We can calculate number of combinations here only.
+						// If all the bad_vertices are placed, then for current number of taken vertices, this is the final answer. In other words
+						// this state of DP will not be updated anymore.
+						if(mask==(1<<n_bad_vertices)-1)
+						{
+
+							ll val = dp[mask][last_placed][taken];
+							if(N-taken<n_bad_vertices)
+								continue;
+                            //cout<<mask<<" "<<last_placed<<" "<<taken<<" "<<val<<endl;
+							val = (val * cnk(N-taken, n_bad_vertices))%MOD;
+							//cout<<val<<endl;
+							val = (val * fa[N-n_bad_vertices])%MOD;
+							//cout<<val<<endl;
+							ans = (ans+val)%MOD;
+							//cout<<ans<<endl;
+						}
+
+					}
+				}
+			}
+		}
+        if(n_bad_vertices==0)
+            ans = fa[N];
+        cout<<ans<<endl;
 
 	}
 
